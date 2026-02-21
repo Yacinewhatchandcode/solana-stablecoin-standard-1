@@ -1,0 +1,24 @@
+[package]
+name = "sss"
+version = "0.1.0"
+description = "Solana Stablecoin Standard — SSS-1 & SSS-2 Presets"
+edition = "2021"
+authors = ["Yacine Benhamou <yacine@prime-ai.fr>"]
+license = "MIT"
+
+[lib]
+crate-type = ["cdylib", "lib"]
+name = "sss"
+
+[features]
+no-entrypoint = []
+no-idl = []
+no-log-ix-name = []
+cpi = ["no-entrypoint"]
+default = []
+
+[dependencies]
+anchor-lang = { version = "0.30.1", features = ["init-if-needed"] }
+anchor-spl = { version = "0.30.1", features = ["token-2022", "associated-token", "metadata"] }
+spl-token-2022 = { version = "4.0.0", features = ["no-entrypoint"] }
+spl-transfer-hook-interface = "0.7.0"
