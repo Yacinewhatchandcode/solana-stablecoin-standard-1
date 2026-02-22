@@ -1,0 +1,62 @@
+version: "3.8"
+
+services:
+  # ── Local Solana Validator ──
+  validator:
+    image: solanalabs/solana:v1.18.26
+    command: >
+      solana-test-validator --reset --quiet --bpf-program SSS111111111111111111111111111111111111111 /workspace/target/deploy/sss.so
+    ports:
+      - "8899:8899" # RPC
+      - "8900:8900" # WebSocket
+    volumes:
+      - program-data:/workspace/target/deploy
+    healthcheck:
+      test: [ "CMD", "solana", "cluster-version", "--url", "http://localhost:8899" ]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  # ── Build & Test ──
+  sss:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    depends_on:
+      validator:
+        condition: service_healthy
+    environment:
+      - ANCHOR_PROVIDER_URL=http://validator:8899
+      - ANCHOR_WALLET=/root/.config/solana/id.json
+    volumes:
+      - program-data:/workspace/target/deploy
+    command: >
+      bash -c "
+        echo '🔨 Building SSS Program...'
+        anchor build
+        echo '🧪 Running Tests...'
+        anchor test --skip-local-validator --provider.cluster http://validator:8899
+        echo '✅ All tests passed!'
+      "
+
+  # ── Deploy to Devnet ──
+  deploy-devnet:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    profiles: [ "deploy" ]
+    environment:
+      - ANCHOR_WALLET=/root/.config/solana/id.json
+    command: >
+      bash -c "
+        echo '🌐 Deploying to Devnet...'
+        solana config set --url devnet
+        solana airdrop 2
+        anchor build
+        anchor deploy --provider.cluster devnet
+        echo '✅ Deployed to Devnet!'
+        solana program show SSS111111111111111111111111111111111111111
+      "
+
+volumes:
+  program-data:

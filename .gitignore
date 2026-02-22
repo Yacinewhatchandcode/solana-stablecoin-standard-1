@@ -1,0 +1,24 @@
+# Anchor / Solana
+target/
+.anchor/
+node_modules/
+test-ledger/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Keys (never commit)
+*.json
+!Anchor.toml
+!Cargo.toml
+!package.json
+!tsconfig.json
+!programs/sss/Cargo.toml
+!sdk/package.json
